@@ -132,4 +132,125 @@ export class FrameitService {
   async removeUser(id: number): Promise<void> {
     await this.userRepository.delete(id);
   }
+
+
+  async getSalesByProductType(params: {
+    page?: number;
+    size?: number;
+    orderBy: 1 | -1;
+    dateStart?: string;
+    dateEnd?: string;
+  }): Promise<any> {
+    const { page, size, orderBy, dateStart, dateEnd } = params;
+
+    const query = this.orderRepository.createQueryBuilder('compra');
+
+    if (dateStart) {
+      query.andWhere('compra.fecha >= :dateStart', { dateStart });
+    }
+    if (dateEnd) {
+      query.andWhere('compra.fecha <= :dateEnd', { dateEnd });
+    }
+
+    if (page && size) {
+      query.skip((page - 1) * size).take(size);
+    }
+
+    const results = await query.getMany();
+
+    const productTypeCounts = results.reduce((acc, compra) => {
+      const productos = JSON.parse(compra.productos);
+      productos.forEach((producto: { tipoCompra: string }) => {
+        const productType = this.mapProductType(producto.tipoCompra);
+        if (!acc[productType]) {
+          acc[productType] = 0;
+        }
+        acc[productType]++;
+      });
+      return acc;
+    }, {});
+
+    return Object.keys(productTypeCounts).map(productType => ({
+      productType,
+      count: productTypeCounts[productType],
+    }));
+  }
+
+
+
+  async getTopMolduras(params: {
+    page?: number;
+    size?: number;
+    orderBy: 1 | -1;
+    dateStart?: string;
+    dateEnd?: string;
+  }): Promise<any> {
+    const { page, size, orderBy, dateStart, dateEnd } = params;
+
+    console.log('orderBy in service:', orderBy);
+
+    const query = this.orderRepository.createQueryBuilder('compra');
+
+    if (dateStart) {
+      query.andWhere('compra.fecha >= :dateStart', { dateStart });
+    }
+    if (dateEnd) {
+      query.andWhere('compra.fecha <= :dateEnd', { dateEnd });
+    }
+
+    if (page && size) {
+      query.skip((page - 1) * size).take(size);
+    }
+
+    const results = await query.getMany();
+
+    const molduraCounts = results.reduce((acc, compra) => {
+      const productos = JSON.parse(compra.productos);
+      productos.forEach((producto: { tipoCompra: string, moldura: string }) => {
+        const productType = this.mapProductType(producto.tipoCompra);
+        if (productType === 'MARCO A DOMICILIO' || productType === 'IMPRIMIR + MARCO') {
+          if (!acc[producto.moldura]) {
+            acc[producto.moldura] = 0;
+          }
+          acc[producto.moldura]++;
+        }
+      });
+      return acc;
+    }, {});
+
+    let sortedMolduras = Object.keys(molduraCounts).map(moldura => ({
+      moldura,
+      count: molduraCounts[moldura],
+    }));
+
+    console.log('Before sorting:', sortedMolduras);
+
+    sortedMolduras.sort((a, b) => {
+      const comparison = b.count - a.count;
+      return orderBy === 1 ? comparison : -comparison;
+    });
+
+    console.log('After sorting:', sortedMolduras);
+
+    return sortedMolduras;
+  }
+
+
+
+  private mapProductType(tipoCompra: string): string {
+    switch (tipoCompra) {
+      case 'FRAME IT':
+      case 'MARCO A DOMICILIO':
+        return 'MARCO A DOMICILIO';
+      case 'PRINT + FRAME':
+      case 'IMPRIMIR + MARCO':
+        return 'IMPRIMIR + MARCO';
+      case 'PRODUCTOS TERMINADOS':
+        return 'PRODUCTOS TERMINADOS';
+      case 'FRAME+':
+        return 'FRAME+';
+      default:
+        return 'OTROS';
+    }
+  }
 }

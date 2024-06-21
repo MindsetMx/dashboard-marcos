@@ -25,6 +25,74 @@ export class FrameitController {
       orderBy,
     });
   }
+
+
+
+  @Get('top-molduras')
+  async getTopMolduras(
+    @Query('page') page?: number,
+    @Query('size') size?: number,
+    @Query('orderBy') orderBy: 1 | -1 = 1,
+    @Query('dateStart') dateStart?: string,
+    @Query('dateEnd') dateEnd?: string,
+  ): Promise<any> {
+    console.log('orderBy in controller:', orderBy);
+
+    const molduraData = await this.frameitService.getTopMolduras({
+      page,
+      size,
+      orderBy,
+      dateStart,
+      dateEnd,
+    });
+
+    return {
+      meta: {
+        total: molduraData.length,
+        page,
+        size,
+      },
+      data: molduraData.map((item, index) => ({
+        id: index + 1,
+        attributes: {
+          moldura: item.moldura,
+          count: item.count,
+        },
+      })),
+    };
+  }
+
+  @Get('sales-by-product-type')
+  async getSalesByProductType(
+    @Query('page') page?: number,
+    @Query('size') size?: number,
+    @Query('orderBy') orderBy: 1 | -1 = 1,
+    @Query('dateStart') dateStart?: string,
+    @Query('dateEnd') dateEnd?: string,
+  ): Promise<any> {
+    const salesData = await this.frameitService.getSalesByProductType({
+      page,
+      size,
+      orderBy,
+      dateStart,
+      dateEnd,
+    });
+
+    return {
+      meta: {
+        total: salesData.length,
+        page,
+        size,
+      },
+      data: salesData.map((item, index) => ({
+        id: index + 1,
+        attributes: {
+          productType: item.productType,
+          count: item.count,
+        },
+      })),
+    };
+  }
   
   @Get('orders/:id')
   findOne(@Param('id') id: number): Promise<Compra> {
