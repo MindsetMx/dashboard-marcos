@@ -14,6 +14,7 @@ export class AnalyticsService {
     this.analyticsDataClient = new BetaAnalyticsDataClient({ keyFilename });
   }
 
+
   async getVisits(startDate: string, endDate: string, interval: string): Promise<any> {
     let dimension;
     if (interval === 'daily') {
@@ -23,7 +24,9 @@ export class AnalyticsService {
     } else if (interval === 'monthly') {
       dimension = 'month';
     }
-
+  
+    console.log('Dimension:', dimension);
+  
     const [response] = await this.analyticsDataClient.runReport({
       property: `properties/${process.env.GA4_PROPERTY_ID}`,
       dateRanges: [
@@ -43,20 +46,28 @@ export class AnalyticsService {
         },
       ],
     });
-
-
+  
+    console.log('Response:', JSON.stringify(response, null, 2));
+  
     const startYear = parseInt(startDate.substring(0, 4), 10);
     const startMonth = parseInt(startDate.substring(5, 7), 10);
-
-    const data = response.rows.map(row => ({
-      date: this.formatDate(row.dimensionValues[0].value, interval, startYear, startMonth),
-      visits: parseInt(row.metricValues[0].value, 10),
-    }));
-
-
+  
+    const data = response.rows.map(row => {
+      const dateFormatted = this.formatDate(row.dimensionValues[0].value, interval, startYear, startMonth);
+      console.log('Formatted Date:', dateFormatted);
+      return {
+        date: dateFormatted,
+        visits: parseInt(row.metricValues[0].value, 10),
+      };
+    });
+  
+    console.log('Data before sorting:', data);
+  
     // Ordenar los datos por fecha
     data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
+  
+    console.log('Data after sorting:', data);
+  
     return {
       meta: {
         startDate,
@@ -67,14 +78,15 @@ export class AnalyticsService {
       data
     };
   }
-
+  
   private formatDate(value: string, interval: string, startYear: number, startMonth: number): string {
+    console.log('Formatting date with value:', value, 'interval:', interval);
     if (interval === 'daily') {
       return `${value.substring(0, 4)}-${value.substring(4, 6)}-${value.substring(6, 8)}`;
     } else if (interval === 'weekly') {
-      const year = parseInt(value.substring(0, 4), 10);
-      const week = parseInt(value.substring(4, 6), 10);
-      return this.getDateRangeForWeek(year, week);
+      const week = parseInt(value, 10);
+      console.log('Week:', week);
+      return this.getDateRangeForWeek(startYear, week);
     } else if (interval === 'monthly') {
       const monthNumber = parseInt(value, 10);
       const year = startYear + Math.floor((startMonth + monthNumber - 2) / 12);
@@ -83,19 +95,26 @@ export class AnalyticsService {
     }
     return value;
   }
-
+  
   private getDateRangeForWeek(year: number, week: number): string {
     const firstDayOfYear = new Date(year, 0, 1);
-    const daysOffset = ((week - 1) * 7) - (firstDayOfYear.getDay() ? firstDayOfYear.getDay() - 1 : 6);
+    console.log('First day of year:', firstDayOfYear);
+    const daysOffset = ((week - 1) * 7) + (firstDayOfYear.getDay() <= 4 ? 1 - firstDayOfYear.getDay() : 8 - firstDayOfYear.getDay());
+    console.log('Days offset:', daysOffset);
     const startDate = new Date(year, 0, 1 + daysOffset);
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 6);
-
+  
+    console.log('Start date:', startDate, 'End date:', endDate);
+  
     const format = (date: Date) => date.toISOString().substring(0, 10);
     const startDateString = format(startDate);
     const endDateString = format(endDate);
     return `${startDateString} - ${endDateString}`;
   }
+  
+  
+  
 
 
   async getGeography(startDate: string, endDate: string): Promise<any> {
