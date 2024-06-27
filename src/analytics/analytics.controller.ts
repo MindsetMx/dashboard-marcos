@@ -6,7 +6,7 @@ export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
 
-  @Get('visits')
+  @Get('frameit/visits')
   async getVisits(
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
