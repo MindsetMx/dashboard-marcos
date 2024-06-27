@@ -10,6 +10,7 @@ export class EnmarktService {
     private readonly ventaRepository: Repository<Venta>,
   ) {}
 
+
   async findAll(params: {
     size: number;
     page: number;
@@ -19,38 +20,48 @@ export class EnmarktService {
     orderBy?: 1 | -1;
   }): Promise<any> {
     const { size, page, dateStart, dateEnd, search, orderBy } = params;
-  
+
+    // Calcular el monto total de todas las ventas en el rango de fechas
+    const totalAmountQuery = this.ventaRepository.createQueryBuilder('venta')
+      .select('SUM(venta.total)', 'total')
+      .where('venta.fechaPedido >= :dateStart', { dateStart })
+      .andWhere('venta.fechaPedido <= :dateEnd', { dateEnd });
+
+    const totalAmountResult = await totalAmountQuery.getRawOne();
+    const totalAmount = totalAmountResult.total || 0;
+
     const query = this.ventaRepository.createQueryBuilder('venta');
-  
+
     if (dateStart) {
       query.andWhere('venta.fechaPedido >= :dateStart', { dateStart });
     }
-  
+
     if (dateEnd) {
       query.andWhere('venta.fechaPedido <= :dateEnd', { dateEnd });
     }
-  
+
     if (search) {
       query.andWhere(
         'venta.cliente LIKE :search OR venta.email LIKE :search',
-        { search: `%${search}%` }
+        { search: `%${search}%` },
       );
     }
-  
+
     if (orderBy) {
       const orderDirection = orderBy === 1 ? 'ASC' : 'DESC';
       query.orderBy('venta.fechaPedido', orderDirection);
     }
-  
+
     query.skip((page - 1) * size).take(size);
-  
+
     const [result, total] = await query.getManyAndCount();
-  
+
     return {
       meta: {
         total,
         page,
         size,
+        totalAmount, // Agregar el monto total de las ventas al metadato
       },
       data: result.map(venta => ({
         id: venta.id,

@@ -13,6 +13,7 @@ export class FrameitService {
     private userRepository: Repository<User>,
   ) {}
 
+
   async findAll(params: {
     size: number;
     page: number;
@@ -22,6 +23,15 @@ export class FrameitService {
     orderBy?: 1 | -1;
   }): Promise<any> {
     const { size, page, dateStart, dateEnd, search, orderBy } = params;
+  
+    // Calcular el monto total de todas las ventas en el rango de fechas
+    const totalAmountQuery = this.orderRepository.createQueryBuilder('compra')
+      .select('SUM(compra.total)', 'total')
+      .where('compra.fecha >= :dateStart', { dateStart })
+      .andWhere('compra.fecha <= :dateEnd', { dateEnd });
+  
+    const totalAmountResult = await totalAmountQuery.getRawOne();
+    const totalAmount = totalAmountResult.total || 0;
   
     const query = this.orderRepository.createQueryBuilder('compra');
   
@@ -36,7 +46,7 @@ export class FrameitService {
     if (search) {
       query.andWhere(
         'compra.nombreC LIKE :search OR compra.correo LIKE :search',
-        { search: `%${search}%` }
+        { search: `%${search}%` },
       );
     }
   
@@ -54,6 +64,7 @@ export class FrameitService {
         total,
         page,
         size,
+        totalAmount, // Agregar el monto total de las ventas al metadato
       },
       data: result.map(compra => ({
         id: compra.id,
@@ -69,6 +80,7 @@ export class FrameitService {
       })),
     };
   }
+  
 
   async findAllUsers(params: {
     size: number;

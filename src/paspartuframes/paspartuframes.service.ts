@@ -56,6 +56,7 @@ export class PaspartuframesService {
     };
   }
 
+
   async findAll(params: {
     size: number;
     page: number;
@@ -65,21 +66,37 @@ export class PaspartuframesService {
     orderBy?: 1 | -1;
   }): Promise<any> {
     const { size, page, dateStart, dateEnd, search, orderBy } = params;
-
+  
+    // Calcular el monto total de todas las ventas en el rango de fechas sin limitar por paginación
+    const totalAmountQuery = this.compraRepository.createQueryBuilder('compra')
+      .select('SUM(compra.total)', 'total')
+      .where('compra.id >= :minId', { minId: 77 });
+  
+    if (dateStart) {
+      totalAmountQuery.andWhere('compra.fecha >= :dateStart', { dateStart });
+    }
+  
+    if (dateEnd) {
+      totalAmountQuery.andWhere('compra.fecha <= :dateEnd', { dateEnd });
+    }
+  
+    const totalAmountResult = await totalAmountQuery.getRawOne();
+    const totalAmount = totalAmountResult.total || 0;
+  
     const query = this.compraRepository.createQueryBuilder('compra');
-
+  
     query.andWhere('compra.id >= :minId', { minId: 77 });
-
+  
     if (dateStart) {
       console.log(`Filtering by start date: ${dateStart}`);
       query.andWhere('compra.fecha >= :dateStart', { dateStart });
     }
-
+  
     if (dateEnd) {
       console.log(`Filtering by end date: ${dateEnd}`);
       query.andWhere('compra.fecha <= :dateEnd', { dateEnd });
     }
-
+  
     if (search) {
       console.log(`Filtering by search: ${search}`);
       query.andWhere(
@@ -87,27 +104,28 @@ export class PaspartuframesService {
         { search: `%${search}%` },
       );
     }
-
+  
     if (orderBy) {
       const orderDirection = orderBy === 1 ? 'ASC' : 'DESC';
       console.log(`Ordering by fecha: ${orderDirection}`);
       query.orderBy('compra.fecha', orderDirection);
     }
-
+  
     query.skip((page - 1) * size).take(size);
-
+  
     console.log(`Generated SQL: ${query.getSql()}`);
-
+  
     const [result, total] = await query.getManyAndCount();
-
+  
     console.log(`Total results: ${total}`);
     console.log(`Result: ${JSON.stringify(result, null, 2)}`);
-
+  
     return {
       meta: {
         total,
         page,
         size,
+        totalAmount, // Agregar el monto total de las ventas al metadato
       },
       data: result.map(compra => ({
         id: compra.id,
@@ -123,6 +141,8 @@ export class PaspartuframesService {
       })),
     };
   }
+  
+
 
   async checkDates(): Promise<any> {
     const result = await this.compraRepository.createQueryBuilder('compra')
