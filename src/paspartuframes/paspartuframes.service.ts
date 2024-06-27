@@ -133,6 +133,120 @@ export class PaspartuframesService {
     return result;
   }
 
+  async getSalesByProductType(params: {
+    page?: number;
+    size?: number;
+    orderBy: 1 | -1;
+    dateStart?: string;
+    dateEnd?: string;
+  }): Promise<any> {
+    const { page, size, orderBy, dateStart, dateEnd } = params;
+
+    const query = this.compraRepository.createQueryBuilder('compra');
+
+    query.andWhere('compra.id >= :minId', { minId: 77 });
+
+    if (dateStart) {
+      query.andWhere('compra.fecha >= :dateStart', { dateStart });
+    }
+    if (dateEnd) {
+      query.andWhere('compra.fecha <= :dateEnd', { dateEnd });
+    }
+
+    if (page && size) {
+      query.skip((page - 1) * size).take(size);
+    }
+
+    const results = await query.getMany();
+
+    const productTypeCounts = results.reduce((acc, compra) => {
+      const productos = JSON.parse(compra.productos);
+      productos.forEach((producto: { tipo_compra: string }) => {
+        if (!acc[producto.tipo_compra]) {
+          acc[producto.tipo_compra] = 0;
+        }
+        acc[producto.tipo_compra]++;
+      });
+      return acc;
+    }, {});
+
+    return Object.keys(productTypeCounts).map(productType => ({
+      productType,
+      count: productTypeCounts[productType],
+    }));
+  }
+
+  async getAllProductCategories(): Promise<any> {
+    const results = await this.compraRepository.createQueryBuilder('compra')
+      .select(['compra.productos'])
+      .where('compra.id >= :minId', { minId: 77 })
+      .getMany();
+
+    const categories = new Set<string>();
+
+    results.forEach(compra => {
+      const productos = JSON.parse(compra.productos);
+      productos.forEach((producto: { tipo_compra: string }) => {
+        categories.add(producto.tipo_compra);
+      });
+    });
+
+    return Array.from(categories);
+  }
+
+
+  async getTopMolduras(params: {
+    page?: number;
+    size?: number;
+    orderBy: 1 | -1;
+    dateStart?: string;
+    dateEnd?: string;
+  }): Promise<any> {
+    const { page, size, orderBy, dateStart, dateEnd } = params;
+
+    const query = this.compraRepository.createQueryBuilder('compra');
+
+    query.andWhere('compra.id >= :minId', { minId: 77 });
+
+    if (dateStart) {
+      query.andWhere('compra.fecha >= :dateStart', { dateStart });
+    }
+    if (dateEnd) {
+      query.andWhere('compra.fecha <= :dateEnd', { dateEnd });
+    }
+
+    if (page && size) {
+      query.skip((page - 1) * size).take(size);
+    }
+
+    const results = await query.getMany();
+
+    const molduraCounts = results.reduce((acc, compra) => {
+      const productos = JSON.parse(compra.productos);
+      productos.forEach((producto: { tipo_compra: string, marco: string }) => {
+        if (producto.tipo_compra === 'Impresión y Marco' || producto.tipo_compra === 'marcos para fotos') {
+          if (!acc[producto.marco]) {
+            acc[producto.marco] = 0;
+          }
+          acc[producto.marco]++;
+        }
+      });
+      return acc;
+    }, {});
+
+    let sortedMolduras = Object.keys(molduraCounts).map(moldura => ({
+      moldura,
+      count: molduraCounts[moldura],
+    }));
+
+    sortedMolduras.sort((a, b) => {
+      const comparison = b.count - a.count;
+      return orderBy === 1 ? comparison : -comparison;
+    });
+
+    return sortedMolduras;
+  }
+
 
 
 

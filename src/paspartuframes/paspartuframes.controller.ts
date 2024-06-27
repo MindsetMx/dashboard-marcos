@@ -49,6 +49,86 @@ findAllCompras() {
     });
   }
 
+  @Get('product-categories')
+  async getAllProductCategories(): Promise<any> {
+    const categories = await this.paspartuframesService.getAllProductCategories();
+    return {
+      meta: {
+        total: categories.length,
+      },
+      data: categories.map((category, index) => ({
+        id: index + 1,
+        attributes: {
+          category,
+        },
+      })),
+    };
+  }
+
+  @Get('top-molduras')
+  async getTopMolduras(
+    @Query('page') page?: number,
+    @Query('size') size?: number,
+    @Query('orderBy') orderBy: 1 | -1 = 1,
+    @Query('dateStart') dateStart?: string,
+    @Query('dateEnd') dateEnd?: string,
+  ): Promise<any> {
+    const molduraData = await this.paspartuframesService.getTopMolduras({
+      page,
+      size,
+      orderBy,
+      dateStart,
+      dateEnd,
+    });
+
+    return {
+      meta: {
+        total: molduraData.length,
+        page,
+        size,
+      },
+      data: molduraData.map((item, index) => ({
+        id: index + 1,
+        attributes: {
+          moldura: item.moldura,
+          count: item.count,
+        },
+      })),
+    };
+  }
+
+  @Get('sales-by-product-type')
+  async getSalesByProductType(
+    @Query('page') page?: number,
+    @Query('size') size?: number,
+    @Query('orderBy') orderBy: 1 | -1 = 1,
+    @Query('dateStart') dateStart?: string,
+    @Query('dateEnd') dateEnd?: string,
+  ): Promise<any> {
+    const salesData = await this.paspartuframesService.getSalesByProductType({
+      page,
+      size,
+      orderBy,
+      dateStart,
+      dateEnd,
+    });
+
+    return {
+      meta: {
+        total: salesData.length,
+        page,
+        size,
+      },
+      data: salesData.map((item, index) => ({
+        id: index + 1,
+        attributes: {
+          productType: item.productType,
+          count: item.count,
+        },
+      })),
+    };
+  }
+
   @Get('check-dates')
   async checkDates(): Promise<any> {
     return this.paspartuframesService.checkDates();
