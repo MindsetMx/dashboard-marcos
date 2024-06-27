@@ -5,7 +5,7 @@ import { EnmarktService } from './enmarkt.service';
 export class EnmarktController {
   constructor(private readonly enmarktService: EnmarktService) {}
 
-  @Get('ventas')
+  @Get('orders')
   async findAll(
     @Query('size') size: number = 10,
     @Query('page') page: number = 1,
@@ -105,11 +105,6 @@ export class EnmarktController {
         })),
     };
     }
-
-  
-  
-  
-  
 
 
 

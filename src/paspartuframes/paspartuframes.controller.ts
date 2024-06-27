@@ -43,7 +43,7 @@ export class PaspartuframesController {
   }
 
   // Rutas y métodos de controlador para compras
-  @Get('compras')
+  @Get('orders')
   findAllCompras() {
     return this.paspartuframesService.findAllCompras();
   }
