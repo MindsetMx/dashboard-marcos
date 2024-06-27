@@ -145,10 +145,8 @@ export class EnmarktService {
   
     query.skip((page - 1) * size).take(size);
   
-    console.log('Generated SQL:', query.getSql());
     
     const result = await query.getRawMany();
-    console.log('Query Result:', result);
   
     // Total number of unique emails
     const totalQuery = this.ventaRepository.createQueryBuilder('venta')
@@ -156,7 +154,6 @@ export class EnmarktService {
       .getRawOne();
   
     const total = (await totalQuery).count;
-    console.log('Total unique emails:', total);
   
     return {
       meta: {
@@ -184,7 +181,6 @@ export class EnmarktService {
   }): Promise<any> {
     const { page, size, orderBy, dateStart, dateEnd } = params;
   
-    console.log('orderBy in service:', orderBy);
   
     const query = this.ventaRepository.createQueryBuilder('venta');
   
@@ -219,14 +215,12 @@ export class EnmarktService {
       count: molduraCounts[moldura],
     }));
   
-    console.log('Before sorting:', sortedMolduras);
   
     sortedMolduras.sort((a, b) => {
       const comparison = b.count - a.count;
       return orderBy === 1 ? comparison : -comparison;
     });
   
-    console.log('After sorting:', sortedMolduras);
   
     return sortedMolduras;
   }
