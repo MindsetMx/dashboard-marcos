@@ -93,16 +93,6 @@ export class FrameitController {
       })),
     };
   }
-  
-  @Get('orders/:id')
-  findOne(@Param('id') id: number): Promise<Compra> {
-    return this.frameitService.findOne(id);
-  }
-
-  @Delete('orders/:id')
-  remove(@Param('id') id: number): Promise<void> {
-    return this.frameitService.remove(id);
-  }
 
   // Rutas para "User"
   @Get('users')
@@ -119,15 +109,5 @@ export class FrameitController {
       orderBy,
     });
   }
-  
 
-  @Get('users/:id')
-  findOneUser(@Param('id') id: number): Promise<User> {
-    return this.frameitService.findOneUser(id);
-  }
-
-  @Delete('users/:id')
-  removeUser(@Param('id') id: number): Promise<void> {
-    return this.frameitService.removeUser(id);
-  }
 }

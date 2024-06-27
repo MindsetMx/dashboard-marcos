@@ -14,26 +14,6 @@ export class AnalyticsService {
     this.analyticsDataClient = new BetaAnalyticsDataClient({ keyFilename });
   }
 
-  async getWebVisits(startDate: string, endDate: string): Promise<any> {
-    const [response] = await this.analyticsDataClient.runReport({
-      property: 'properties/371223237', // ID de tu propiedad GA4
-      dateRanges: [
-        {
-          startDate,
-          endDate,
-        },
-      ],
-      metrics: [
-        {
-          name: 'activeUsers',
-        },
-      ],
-    });
-
-    return response;
-  }
-
-
   async getVisits(startDate: string, endDate: string, interval: string): Promise<any> {
     let dimension;
     if (interval === 'daily') {

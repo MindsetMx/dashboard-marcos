@@ -13,7 +13,6 @@ export class FrameitService {
     private userRepository: Repository<User>,
   ) {}
 
-
   async findAll(params: {
     size: number;
     page: number;
@@ -70,18 +69,7 @@ export class FrameitService {
       })),
     };
   }
-  
 
-  findOne(id: number): Promise<Compra> {
-    return this.orderRepository.findOne({ where: { id } });
-  }
-
-  async remove(id: number): Promise<void> {
-    await this.orderRepository.delete(id);
-  }
-
-
-  // Métodos para "User"
   async findAllUsers(params: {
     size: number;
     page: number;
@@ -123,16 +111,6 @@ export class FrameitService {
       })),
     };
   }
-  
-
-  findOneUser(id: number): Promise<User> {
-    return this.userRepository.findOne({ where: { id } });
-  }
-
-  async removeUser(id: number): Promise<void> {
-    await this.userRepository.delete(id);
-  }
-
 
   async getSalesByProductType(params: {
     page?: number;
@@ -175,8 +153,6 @@ export class FrameitService {
       count: productTypeCounts[productType],
     }));
   }
-
-
 
   async getTopMolduras(params: {
     page?: number;
@@ -234,8 +210,6 @@ export class FrameitService {
 
     return sortedMolduras;
   }
-
-
 
   private mapProductType(tipoCompra: string): string {
     switch (tipoCompra) {

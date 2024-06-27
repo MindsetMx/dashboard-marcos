@@ -1,23 +1,23 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity('users')
+@Entity('users') // Asegúrate de que el nombre de la tabla coincide
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column('varchar', { length: 255 })
   name: string;
 
-  @Column({ type: 'varchar', length: 255, unique: true })
+  @Column('varchar', { length: 255, unique: true })
   email: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column('timestamp', { nullable: true })
   email_verified_at: Date;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column('varchar', { length: 255 })
   password: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Column('varchar', { length: 100, nullable: true })
   remember_token: string;
 
   @CreateDateColumn()
