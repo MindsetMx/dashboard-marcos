@@ -15,16 +15,22 @@ export class Compra {
   correo: string;
 
   @Column('varchar', { length: 255 })
+  nombre: string; // Asegúrate de incluir el campo nombre
+
+  @Column('varchar', { length: 255 })
   status: string;
 
-  @Column('decimal', { precision: 10, scale: 0 })
+  @Column('double', { precision: 8, scale: 2 }) // Ajuste de precisión y escala
   total: number;
 
   @Column('varchar', { length: 255, nullable: true })
   tracking: string;
 
-  @Column('text')
+  @Column('text', { nullable: true })
   direccion: string;
+
+  @Column('date', { nullable: true })
+  fecha: Date; // Agregar la columna fecha
 
   @CreateDateColumn()
   created_at: Date;
