@@ -4,7 +4,9 @@ import { DatabaseService } from './database.service';
 import { frameitConfig } from 'ormconfig';
 import { paspartuframesConfig } from 'ormconfig-paspartuframes';
 import { enmarktConfig } from 'ormconfig-enmarkt';
+import { vnailConfig } from 'ormconfig-vnail';
 import { DatabaseController } from './database.controller';
+import { mymboxConfig } from 'ormconfig-mymbox';
 
 @Module({
   imports: [
@@ -16,6 +18,14 @@ import { DatabaseController } from './database.controller';
     TypeOrmModule.forRoot({
       ...enmarktConfig,
       name: 'enmarktConnection',
+    }),
+    TypeOrmModule.forRoot({
+      ...vnailConfig,
+      name: 'vnailConnection',
+    }),
+    TypeOrmModule.forRoot({
+      ...mymboxConfig,
+      name: 'mymboxConnection',
     }),
   ],
   providers: [DatabaseService],
