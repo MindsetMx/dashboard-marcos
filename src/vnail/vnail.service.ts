@@ -4,6 +4,17 @@ import { Repository } from 'typeorm';
 import { Compra } from './entities/compra.entity';
 import { Usuario } from './entities/usuario.entity';
 
+
+const categoriasMap = {
+  1: 'Grapas de ensamble',
+  2: 'Puntas de enmarcado',
+  3: 'Maquinas de corte y ensamble',
+  4: 'Pistolas de enmarcado',
+  5: 'Cortadoras de marialuisa',
+  6: 'Insumos para marcos'
+};
+
+
 @Injectable()
 export class VnailService {
   constructor(
@@ -24,50 +35,105 @@ export class VnailService {
     orderBy?: 1 | -1;
   }): Promise<any> {
     const { size, page, dateStart, dateEnd, search, orderBy } = params;
-
+  
+    const totalAmountQuery = this.compraRepository.createQueryBuilder('compra')
+      .select('SUM(compra.total)', 'total');
+  
+    if (dateStart) {
+      totalAmountQuery.andWhere('compra.created_at >= :dateStart', { dateStart });
+    }
+  
+    if (dateEnd) {
+      totalAmountQuery.andWhere('compra.created_at <= :dateEnd', { dateEnd });
+    }
+  
+    const totalAmountResult = await totalAmountQuery.getRawOne();
+    const totalAmount = totalAmountResult.total || 0;
+  
     const query = this.compraRepository.createQueryBuilder('compra');
-
+  
     if (dateStart) {
       query.andWhere('compra.created_at >= :dateStart', { dateStart });
     }
-
+  
     if (dateEnd) {
       query.andWhere('compra.created_at <= :dateEnd', { dateEnd });
     }
-
+  
     if (search) {
       query.andWhere('compra.user_id = :search OR compra.email LIKE :search', { search: `%${search}%` });
     }
-
+  
     if (orderBy) {
       const orderDirection = orderBy === 1 ? 'ASC' : 'DESC';
       query.orderBy('compra.created_at', orderDirection);
     }
-
+  
     query.skip((page - 1) * size).take(size);
-
+  
     const [result, total] = await query.getManyAndCount();
-
+  
+    // Obtener los correos electrónicos basados en los user_ids
+    const userIds = result.map(compra => compra.user_id);
+    const users = await this.userRepository.findByIds(userIds);
+    const userMap = new Map(users.map(user => [user.id, user.email]));
+  
+    console.log('Resultados obtenidos:', result);
+  
     return {
       meta: {
         total,
         page,
         size,
+        totalAmount,
       },
-      data: result.map((compra:any) => ({
-        id: compra.id,
-        attributes: {
-          numero_pedido: compra.id,
-          cliente: compra.direccion.nombre,
-          productos: Object.values(compra.resumen).map((p: any) => p.name).join(', '),
-          total: compra.total,
-          correo: compra.email,
-          fecha: compra.created_at,
-          status: compra.estatus_id,
-        },
-      })),
+      data: result.map((compra: any) => {
+        let productos = '';
+        let cliente = '';
+        const correo = userMap.get(compra.user_id) || compra.email || '';
+  
+        console.log('Procesando compra:', compra);
+  
+        if (compra.resumen) {
+          try {
+            const parsedResumen = typeof compra.resumen === 'string' ? JSON.parse(compra.resumen) : compra.resumen;
+            productos = Object.values(parsedResumen).map((p: any) => categoriasMap[p.options.categoria_id] || p.name).join(', ');
+            console.log('Productos parseados:', parsedResumen);
+          } catch (error) {
+            console.error('Error parsing resumen:', error);
+          }
+        }
+  
+        if (compra.direccion) {
+          try {
+            const parsedDireccion = typeof compra.direccion === 'string' ? JSON.parse(compra.direccion) : compra.direccion;
+            cliente = parsedDireccion.nombre || '';
+            console.log('Dirección parseada:', parsedDireccion);
+          } catch (error) {
+            console.error('Error parsing direccion:', error);
+          }
+        }
+  
+        return {
+          id: compra.id,
+          attributes: {
+            numero_pedido: compra.id,
+            cliente,
+            productos,
+            total: compra.total,
+            correo,
+            fecha: compra.created_at,
+            status: compra.estatus_id,
+          },
+        };
+      }),
     };
   }
+  
+  
+  
+  
+  
 
   async findAllUsers(params: {
     size: number;
