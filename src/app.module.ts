@@ -11,6 +11,7 @@ import { AnalyticsService } from './analytics/analytics.service';
 import { EnmarktModule } from './enmarkt/enmarkt.module';
 import { VnailModule } from './vnail/vnail.module';
 import { MymboxModule } from './mymbox/mymbox.module';
+import { ImpresionesModule } from './impresiones/impresiones.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { MymboxModule } from './mymbox/mymbox.module';
     EnmarktModule,
     VnailModule,
     MymboxModule,
+    ImpresionesModule,
   ],
   controllers: [AppController, AnalyticsController,],
   providers: [AppService, AnalyticsService],

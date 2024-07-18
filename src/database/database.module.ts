@@ -7,6 +7,8 @@ import { enmarktConfig } from 'ormconfig-enmarkt';
 import { vnailConfig } from 'ormconfig-vnail';
 import { DatabaseController } from './database.controller';
 import { mymboxConfig } from 'ormconfig-mymbox';
+import { impresionesConfig } from 'ormconfig-impresiones';
+import { cotizadorConfig } from 'ormconfig-cotizador';
 
 @Module({
   imports: [
@@ -27,6 +29,14 @@ import { mymboxConfig } from 'ormconfig-mymbox';
       ...mymboxConfig,
       name: 'mymboxConnection',
     }),
+    TypeOrmModule.forRoot({
+      ...impresionesConfig,
+      name: 'impresionesConnection',
+    }),
+    // TypeOrmModule.forRoot({
+    //   ...cotizadorConfig,
+    //   name: 'cotizadorConnection',
+    // }),
   ],
   providers: [DatabaseService],
   exports: [DatabaseService],
