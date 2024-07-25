@@ -12,10 +12,16 @@ import { EnmarktModule } from './enmarkt/enmarkt.module';
 import { VnailModule } from './vnail/vnail.module';
 import { MymboxModule } from './mymbox/mymbox.module';
 import { ImpresionesModule } from './impresiones/impresiones.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import config from './config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }), // Cargar variables de entorno
+    ConfigModule.forRoot({
+      load: [config],
+      isGlobal: true,
+    }),
     DatabaseModule,
     FrameitModule,
     AnalyticsModule,
@@ -24,6 +30,8 @@ import { ImpresionesModule } from './impresiones/impresiones.module';
     VnailModule,
     MymboxModule,
     ImpresionesModule,
+    AuthModule,
+    UsersModule,
   ],
   controllers: [AppController, AnalyticsController,],
   providers: [AppService, AnalyticsService],
