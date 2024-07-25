@@ -6,7 +6,6 @@ COPY package*.json ./
 ENV TZ America/Mexico_City
 RUN npm cache clean --force
 RUN npm install
-RUN npm link webpack
 COPY . .
 EXPOSE 8000 80
 RUN npm run build
