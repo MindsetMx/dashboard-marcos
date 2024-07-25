@@ -1,0 +1,35 @@
+version: '3.3'
+services:
+  dashboardMM:
+    container_name: dashboardMM
+    build: .
+    command: npm run start:dev
+    restart: always
+    networks:
+      - dashboard-network
+    # ports:
+    #   - "80:80"
+    volumes:
+      - .:/usr/src/app/
+      - /usr/src/app/node_modules
+    environment:
+      MODE_ENV: development
+
+  webserver:
+    image: nginx:mainline-alpine
+    container_name: dashboardserver
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./dashboard:/var/www/html
+      - .:/usr/src/app/src
+      - ./nginx-conf/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - dashboardMM
+    networks:
+      - dashboard-network
+
+networks:
+  dashboard-network:
+    driver: bridge
