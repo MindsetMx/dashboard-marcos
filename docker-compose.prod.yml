@@ -9,11 +9,30 @@ services:
       - dashboard-network
     # ports:
     #   - "80:80"
+    depends_on:
+      - mongo
     volumes:
       - .:/usr/src/app/
       - /usr/src/app/node_modules
     environment:
       MODE_ENV: development
+
+  mongo:
+    image: mongo
+    container_name: 'auteurnet-mongo'
+    command: mongod --auth
+    environment:
+      - MONGO_INITDB_DATABASE=${MONGO_DB}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    restart: on-failure
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb:/data/db
+    networks:
+      - auter-network
+
 
   webserver:
     image: nginx:mainline-alpine
@@ -27,8 +46,13 @@ services:
       - ./nginx-conf/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - dashboardMM
+      - mongo
     networks:
       - dashboard-network
+
+volumes:
+  mongodb:
+
 
 networks:
   dashboard-network:
