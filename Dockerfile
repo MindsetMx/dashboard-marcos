@@ -1,4 +1,4 @@
-FROM node:15-alpine
+FROM node:14
 ENV MODE_ENV development
 RUN mkdir -p /usr/src/app/node_modules && chown -R node:node /usr/src/app
 WORKDIR /usr/src/app
