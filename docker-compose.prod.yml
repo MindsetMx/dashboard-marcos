@@ -1,7 +1,7 @@
 version: '3.3'
 services:
-  dashboardMM:
-    container_name: dashboardMM
+  dashboard-marcos:
+    container_name: dashboard-marcos
     build: .
     command: npm run start:dev
     restart: always
@@ -45,7 +45,7 @@ services:
       - .:/usr/src/app/src
       - ./nginx-conf/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
-      - dashboardMM
+      - dashboard-marcos
       - mongo
     networks:
       - dashboard-network
