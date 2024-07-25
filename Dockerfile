@@ -7,5 +7,5 @@ ENV TZ America/Mexico_City
 RUN npm cache clean --force
 RUN npm install
 COPY . .
-EXPOSE 8000 80
+EXPOSE 3000 80
 RUN npm run build
