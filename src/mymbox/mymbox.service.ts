@@ -15,6 +15,133 @@ export class MymboxService {
 
 
 
+  // async findAllCompras(params: {
+  //   size: number;
+  //   page: number;
+  //   dateStart?: string;
+  //   dateEnd?: string;
+  //   search?: string;
+  //   orderBy?: 1 | -1;
+  // }): Promise<any> {
+  //   const { size, page, dateStart, dateEnd, search, orderBy } = params;
+  
+  //   // Calcular el monto total de todas las ventas en el rango de fechas sin limitar por paginación
+  //   const totalAmountQuery = this.compraRepository.createQueryBuilder('compra')
+  //     .select('SUM(JSON_EXTRACT(compra.informacion_envio, "$.total"))', 'total')
+  //     .where('JSON_EXTRACT(compra.informacion_envio, "$.estatus") = :status', { status: 'compra exitosa' });
+  
+  //   if (dateStart) {
+  //     totalAmountQuery.andWhere('compra.created_at >= :dateStart', { dateStart });
+  //   }
+  
+  //   if (dateEnd) {
+  //     totalAmountQuery.andWhere('compra.created_at <= :dateEnd', { dateEnd });
+  //   }
+  
+  //   const totalAmountResult = await totalAmountQuery.getRawOne();
+  //   const totalAmount = totalAmountResult.total || 0;
+  
+  //   const query = this.compraRepository.createQueryBuilder('compra')
+  //     .select([
+  //       'compra.id',
+  //       'compra.user_id',
+  //       'compra.email',
+  //       'compra.productos',
+  //       'compra.informacion_envio',
+  //       'compra.status_pago',
+  //       'compra.created_at',
+  //       'compra.updated_at'
+  //     ])
+  //     .where('JSON_EXTRACT(compra.informacion_envio, "$.estatus") = :status', { status: 'compra exitosa' });
+  
+  //   console.log('Parametros:', params);
+  
+  //   if (dateStart) {
+  //     query.andWhere('compra.created_at >= :dateStart', { dateStart });
+  //   }
+  
+  //   if (dateEnd) {
+  //     query.andWhere('compra.created_at <= :dateEnd', { dateEnd });
+  //   }
+  
+  //   if (search) {
+  //     query.andWhere('compra.email LIKE :search', { search: `%${search}%` });
+  //   }
+  
+  //   if (orderBy) {
+  //     const orderDirection = orderBy === 1 ? 'ASC' : 'DESC';
+  //     query.orderBy('compra.created_at', orderDirection);
+  //   }
+  
+  //   query.skip((page - 1) * size).take(size);
+  
+  //   console.log('SQL generado:', query.getSql());
+  
+  //   const [result, total] = await query.getManyAndCount();
+  
+  //   console.log('Resultados de la consulta:', result);
+  
+  //   return {
+  //     meta: {
+  //       total,
+  //       page,
+  //       size,
+  //       totalAmount, // Agregar el monto total de las ventas al metadato
+  //     },
+  //     data: result.map(compra => {
+  //       let productosSet = new Set<string>();
+  //       try {
+  //         const parsedProductos = JSON.parse(compra.productos);
+  //         if (Array.isArray(parsedProductos)) {
+  //           parsedProductos.forEach((p: any) => productosSet.add(p.producto.categoria || 'sin categoria'));
+  //         } else if (typeof parsedProductos === 'object') {
+  //           Object.values(parsedProductos).forEach((p: any) => productosSet.add(p.producto.categoria || 'sin categoria'));
+  //         }
+  //       } catch (error) {
+  //         console.error('Error parsing productos:', error);
+  //       }
+  
+  //       let productos = Array.from(productosSet).join(', ');
+  
+  //       let cliente = '';
+  //       let total = 0;
+  //       let status = '';
+  //       try {
+  //         const parsedInformacionEnvio = JSON.parse(compra.informacion_envio);
+  //         cliente = parsedInformacionEnvio.destinatario || '';
+  //         total = parsedInformacionEnvio.total || 0;
+  //         status = parsedInformacionEnvio.estatus || '';
+  //       } catch (error) {
+  //         console.error('Error parsing informacion_envio:', error);
+  //       }
+  
+  //       console.log('Compra procesada:', {
+  //         id: compra.id,
+  //         cliente,
+  //         productos,
+  //         total,
+  //         fecha: compra.created_at,
+  //         status,
+  //       });
+  
+  //       return {
+  //         id: compra.id,
+  //         attributes: {
+  //           numero_pedido: compra.id,
+  //           cliente,
+  //           correo: compra.email,
+  //           productos,
+  //           total,
+  //           fecha: compra.created_at,
+  //           status,
+  //         },
+  //       };
+  //     }),
+  //   };
+  // }
+
+
+
   async findAllCompras(params: {
     size: number;
     page: number;
@@ -27,7 +154,9 @@ export class MymboxService {
   
     // Calcular el monto total de todas las ventas en el rango de fechas sin limitar por paginación
     const totalAmountQuery = this.compraRepository.createQueryBuilder('compra')
-      .select('SUM(JSON_EXTRACT(compra.informacion_envio, "$.total"))', 'total');
+      .select('SUM(JSON_EXTRACT(compra.informacion_envio, "$.total"))', 'total')
+      .where('JSON_EXTRACT(compra.informacion_envio, "$.estatus") = :status', { status: 'compra exitosa' })
+      .andWhere('JSON_EXTRACT(compra.status_pago, "$.status") = :statusPago', { statusPago: 'compra exitosa' });
   
     if (dateStart) {
       totalAmountQuery.andWhere('compra.created_at >= :dateStart', { dateStart });
@@ -50,7 +179,9 @@ export class MymboxService {
         'compra.status_pago',
         'compra.created_at',
         'compra.updated_at'
-      ]);
+      ])
+      .where('JSON_EXTRACT(compra.informacion_envio, "$.estatus") = :status', { status: 'compra exitosa' })
+      .andWhere('JSON_EXTRACT(compra.status_pago, "$.status") = :statusPago', { statusPago: 'compra exitosa' });
   
     console.log('Parametros:', params);
   
@@ -87,17 +218,19 @@ export class MymboxService {
         totalAmount, // Agregar el monto total de las ventas al metadato
       },
       data: result.map(compra => {
-        let productos = '';
+        let productosSet = new Set<string>();
         try {
           const parsedProductos = JSON.parse(compra.productos);
           if (Array.isArray(parsedProductos)) {
-            productos = parsedProductos.map((p: any) => p.producto.categoria || 'sin categoria').join(', ');
+            parsedProductos.forEach((p: any) => productosSet.add(p.producto.categoria || 'sin categoria'));
           } else if (typeof parsedProductos === 'object') {
-            productos = Object.values(parsedProductos).map((p: any) => p.producto.categoria || 'sin categoria').join(', ');
+            Object.values(parsedProductos).forEach((p: any) => productosSet.add(p.producto.categoria || 'sin categoria'));
           }
         } catch (error) {
           console.error('Error parsing productos:', error);
         }
+  
+        let productos = Array.from(productosSet).join(', ');
   
         let cliente = '';
         let total = 0;
@@ -135,6 +268,14 @@ export class MymboxService {
       }),
     };
   }
+  
+  
+  
+  
+  
+  
+  
+  
   
   
   
