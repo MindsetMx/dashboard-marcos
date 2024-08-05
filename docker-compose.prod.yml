@@ -64,7 +64,7 @@ services:
       - dhparam:/etc/ssl/certs
     depends_on:
       - webserver
-    command: certonly --webroot --webroot-path=/var/www/html --email ilse.lopez@mindsetmx.com --agree-tos --no-eff-email --force-renewal -d dashboard.marcosymarcos.mx
+    command: certonly --webroot --webroot-path=/var/www/html --email ilse.lopez@mindsetmx.com --agree-tos --no-eff-email -d dashboard.marcosymarcos.mx
 
 volumes:
   mongodb:
