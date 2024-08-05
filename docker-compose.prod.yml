@@ -74,7 +74,7 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /home/ubuntu/dashboard-marcos/dhparam/
+      device: /dhparam/
       o: bind
 
 
