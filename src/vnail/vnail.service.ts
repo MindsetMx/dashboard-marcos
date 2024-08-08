@@ -36,8 +36,10 @@ export class VnailService {
   // }): Promise<any> {
   //   const { size, page, dateStart, dateEnd, search, orderBy } = params;
   
+  //   // Consulta para calcular el monto total solo de los estados permitidos
   //   const totalAmountQuery = this.compraRepository.createQueryBuilder('compra')
-  //     .select('SUM(compra.total)', 'total');
+  //     .select('SUM(compra.total)', 'total')
+  //     .where('compra.estatus_id IN (:...statusIds)', { statusIds: [2, 3, 4] }); // estados de pagos completados
   
   //   if (dateStart) {
   //     totalAmountQuery.andWhere('compra.created_at >= :dateStart', { dateStart });
@@ -50,7 +52,9 @@ export class VnailService {
   //   const totalAmountResult = await totalAmountQuery.getRawOne();
   //   const totalAmount = totalAmountResult.total || 0;
   
-  //   const query = this.compraRepository.createQueryBuilder('compra');
+  //   // Consulta para obtener las compras
+  //   const query = this.compraRepository.createQueryBuilder('compra')
+  //     .where('compra.estatus_id IN (:...statusIds)', { statusIds: [2, 3, 4] }); // estados de pagos completados
   
   //   if (dateStart) {
   //     query.andWhere('compra.created_at >= :dateStart', { dateStart });
@@ -129,9 +133,8 @@ export class VnailService {
   //     }),
   //   };
   // }
-
-
-
+  
+  
   async findAll(params: {
     size: number;
     page: number;
@@ -158,9 +161,8 @@ export class VnailService {
     const totalAmountResult = await totalAmountQuery.getRawOne();
     const totalAmount = totalAmountResult.total || 0;
   
-    // Consulta para obtener las compras
-    const query = this.compraRepository.createQueryBuilder('compra')
-      .where('compra.estatus_id IN (:...statusIds)', { statusIds: [2, 3, 4] }); // estados de pagos completados
+    // Consulta para obtener todas las compras, sin filtrar por estado
+    const query = this.compraRepository.createQueryBuilder('compra');
   
     if (dateStart) {
       query.andWhere('compra.created_at >= :dateStart', { dateStart });
@@ -239,9 +241,6 @@ export class VnailService {
       }),
     };
   }
-  
-  
-  
   
   
   

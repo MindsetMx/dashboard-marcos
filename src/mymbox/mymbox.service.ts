@@ -28,7 +28,8 @@ export class MymboxService {
   //   // Calcular el monto total de todas las ventas en el rango de fechas sin limitar por paginación
   //   const totalAmountQuery = this.compraRepository.createQueryBuilder('compra')
   //     .select('SUM(JSON_EXTRACT(compra.informacion_envio, "$.total"))', 'total')
-  //     .where('JSON_EXTRACT(compra.informacion_envio, "$.estatus") = :status', { status: 'compra exitosa' });
+  //     .where('JSON_EXTRACT(compra.informacion_envio, "$.estatus") = :status', { status: 'compra exitosa' })
+  //     .andWhere('JSON_EXTRACT(compra.status_pago, "$.status") = :statusPago', { statusPago: 'compra exitosa' });
   
   //   if (dateStart) {
   //     totalAmountQuery.andWhere('compra.created_at >= :dateStart', { dateStart });
@@ -52,7 +53,8 @@ export class MymboxService {
   //       'compra.created_at',
   //       'compra.updated_at'
   //     ])
-  //     .where('JSON_EXTRACT(compra.informacion_envio, "$.estatus") = :status', { status: 'compra exitosa' });
+  //     .where('JSON_EXTRACT(compra.informacion_envio, "$.estatus") = :status', { status: 'compra exitosa' })
+  //     .andWhere('JSON_EXTRACT(compra.status_pago, "$.status") = :statusPago', { statusPago: 'compra exitosa' });
   
   //   console.log('Parametros:', params);
   
@@ -139,9 +141,7 @@ export class MymboxService {
   //     }),
   //   };
   // }
-
-
-
+  
   async findAllCompras(params: {
     size: number;
     page: number;
@@ -169,6 +169,7 @@ export class MymboxService {
     const totalAmountResult = await totalAmountQuery.getRawOne();
     const totalAmount = totalAmountResult.total || 0;
   
+    // Consulta para obtener todas las compras, sin filtrar por estado
     const query = this.compraRepository.createQueryBuilder('compra')
       .select([
         'compra.id',
@@ -179,9 +180,7 @@ export class MymboxService {
         'compra.status_pago',
         'compra.created_at',
         'compra.updated_at'
-      ])
-      .where('JSON_EXTRACT(compra.informacion_envio, "$.estatus") = :status', { status: 'compra exitosa' })
-      .andWhere('JSON_EXTRACT(compra.status_pago, "$.status") = :statusPago', { statusPago: 'compra exitosa' });
+      ]);
   
     console.log('Parametros:', params);
   
@@ -235,13 +234,16 @@ export class MymboxService {
         let cliente = '';
         let total = 0;
         let status = '';
+        let statusPago = '';
         try {
           const parsedInformacionEnvio = JSON.parse(compra.informacion_envio);
           cliente = parsedInformacionEnvio.destinatario || '';
           total = parsedInformacionEnvio.total || 0;
           status = parsedInformacionEnvio.estatus || '';
+          const parsedStatusPago = JSON.parse(compra.status_pago);
+          statusPago = parsedStatusPago.status || '';
         } catch (error) {
-          console.error('Error parsing informacion_envio:', error);
+          console.error('Error parsing informacion_envio or status_pago:', error);
         }
   
         console.log('Compra procesada:', {
@@ -251,6 +253,7 @@ export class MymboxService {
           total,
           fecha: compra.created_at,
           status,
+          statusPago,
         });
   
         return {
@@ -263,12 +266,12 @@ export class MymboxService {
             total,
             fecha: compra.created_at,
             status,
+            statusPago,
           },
         };
       }),
     };
   }
-  
   
   
   

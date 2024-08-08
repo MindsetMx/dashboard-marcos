@@ -14,6 +14,74 @@ export class FrameitService {
   ) {}
 
 
+  // async findAll(params: {
+  //   size: number;
+  //   page: number;
+  //   dateStart?: string;
+  //   dateEnd?: string;
+  //   search?: string;
+  //   orderBy?: 1 | -1;
+  // }): Promise<any> {
+  //   const { size, page, dateStart, dateEnd, search, orderBy } = params;
+  
+  //   // Calcular el monto total de todas las ventas en el rango de fechas
+  //   const totalAmountQuery = this.orderRepository.createQueryBuilder('compra')
+  //     .select('SUM(compra.total)', 'total')
+  //     .where('compra.fecha >= :dateStart', { dateStart })
+  //     .andWhere('compra.fecha <= :dateEnd', { dateEnd });
+  
+  //   const totalAmountResult = await totalAmountQuery.getRawOne();
+  //   const totalAmount = totalAmountResult.total || 0;
+  
+  //   const query = this.orderRepository.createQueryBuilder('compra');
+  
+  //   if (dateStart) {
+  //     query.andWhere('compra.fecha >= :dateStart', { dateStart });
+  //   }
+  
+  //   if (dateEnd) {
+  //     query.andWhere('compra.fecha <= :dateEnd', { dateEnd });
+  //   }
+  
+  //   if (search) {
+  //     query.andWhere(
+  //       'compra.nombreC LIKE :search OR compra.correo LIKE :search',
+  //       { search: `%${search}%` },
+  //     );
+  //   }
+  
+  //   if (orderBy) {
+  //     const orderDirection = orderBy === 1 ? 'ASC' : 'DESC';
+  //     query.orderBy('compra.fecha', orderDirection);
+  //   }
+  
+  //   query.skip((page - 1) * size).take(size);
+  
+  //   const [result, total] = await query.getManyAndCount();
+  
+  //   return {
+  //     meta: {
+  //       total,
+  //       page,
+  //       size,
+  //       totalAmount, // Agregar el monto total de las ventas al metadato
+  //     },
+  //     data: result.map(compra => ({
+  //       id: compra.id,
+  //       attributes: {
+  //         numero_pedido: compra.id,
+  //         cliente: compra.nombreC,
+  //         productos: JSON.parse(compra.productos).map(p => p.tipoCompra).join(', '),
+  //         total: compra.total,
+  //         correo: compra.correo,
+  //         fecha: compra.fecha,
+  //         status: compra.status,
+  //       },
+  //     })),
+  //   };
+  // }
+
+
   async findAll(params: {
     size: number;
     page: number;
@@ -24,11 +92,18 @@ export class FrameitService {
   }): Promise<any> {
     const { size, page, dateStart, dateEnd, search, orderBy } = params;
   
-    // Calcular el monto total de todas las ventas en el rango de fechas
+    // Calcular el monto total de todas las ventas en el rango de fechas solo para los estados permitidos
     const totalAmountQuery = this.orderRepository.createQueryBuilder('compra')
       .select('SUM(compra.total)', 'total')
-      .where('compra.fecha >= :dateStart', { dateStart })
-      .andWhere('compra.fecha <= :dateEnd', { dateEnd });
+      .where('compra.status IN (:...statusIds)', { statusIds: ['Fabrica', 'Enviado', 'Entregado'] });
+  
+    if (dateStart) {
+      totalAmountQuery.andWhere('compra.fecha >= :dateStart', { dateStart });
+    }
+  
+    if (dateEnd) {
+      totalAmountQuery.andWhere('compra.fecha <= :dateEnd', { dateEnd });
+    }
   
     const totalAmountResult = await totalAmountQuery.getRawOne();
     const totalAmount = totalAmountResult.total || 0;
@@ -59,6 +134,8 @@ export class FrameitService {
   
     const [result, total] = await query.getManyAndCount();
   
+    console.log('Resultados obtenidos:', JSON.stringify(result, null, 2));
+  
     return {
       meta: {
         total,
@@ -80,6 +157,7 @@ export class FrameitService {
       })),
     };
   }
+  
   
 
   async findAllUsers(params: {
