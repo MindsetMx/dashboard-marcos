@@ -135,6 +135,114 @@ export class VnailService {
   // }
   
   
+  // async findAll(params: {
+  //   size: number;
+  //   page: number;
+  //   dateStart?: string;
+  //   dateEnd?: string;
+  //   search?: string;
+  //   orderBy?: 1 | -1;
+  // }): Promise<any> {
+  //   const { size, page, dateStart, dateEnd, search, orderBy } = params;
+  
+  //   // Consulta para calcular el monto total solo de los estados permitidos
+  //   const totalAmountQuery = this.compraRepository.createQueryBuilder('compra')
+  //     .select('SUM(compra.total)', 'total')
+  //     .where('compra.estatus_id IN (:...statusIds)', { statusIds: [2, 3, 4] }); // estados de pagos completados
+  
+  //   if (dateStart) {
+  //     totalAmountQuery.andWhere('compra.created_at >= :dateStart', { dateStart });
+  //   }
+  
+  //   if (dateEnd) {
+  //     totalAmountQuery.andWhere('compra.created_at <= :dateEnd', { dateEnd });
+  //   }
+  
+  //   const totalAmountResult = await totalAmountQuery.getRawOne();
+  //   const totalAmount = totalAmountResult.total || 0;
+  
+  //   // Consulta para obtener todas las compras, sin filtrar por estado
+  //   const query = this.compraRepository.createQueryBuilder('compra');
+  
+  //   if (dateStart) {
+  //     query.andWhere('compra.created_at >= :dateStart', { dateStart });
+  //   }
+  
+  //   if (dateEnd) {
+  //     query.andWhere('compra.created_at <= :dateEnd', { dateEnd });
+  //   }
+  
+  //   if (search) {
+  //     query.andWhere('compra.user_id = :search OR compra.email LIKE :search', { search: `%${search}%` });
+  //   }
+  
+  //   if (orderBy) {
+  //     const orderDirection = orderBy === 1 ? 'ASC' : 'DESC';
+  //     query.orderBy('compra.created_at', orderDirection);
+  //   }
+  
+  //   query.skip((page - 1) * size).take(size);
+  
+  //   const [result, total] = await query.getManyAndCount();
+  
+  //   // Obtener los correos electrónicos basados en los user_ids
+  //   const userIds = result.map(compra => compra.user_id);
+  //   const users = await this.userRepository.findByIds(userIds);
+  //   const userMap = new Map(users.map(user => [user.id, user.email]));
+  
+  //   console.log('Resultados obtenidos:', result);
+  
+  //   return {
+  //     meta: {
+  //       total,
+  //       page,
+  //       size,
+  //       totalAmount,
+  //     },
+  //     data: result.map((compra: any) => {
+  //       let productos = '';
+  //       let cliente = '';
+  //       const correo = userMap.get(compra.user_id) || compra.email || '';
+  
+  //       console.log('Procesando compra:', compra);
+  
+  //       if (compra.resumen) {
+  //         try {
+  //           const parsedResumen = typeof compra.resumen === 'string' ? JSON.parse(compra.resumen) : compra.resumen;
+  //           productos = Object.values(parsedResumen).map((p: any) => categoriasMap[p.options.categoria_id] || p.name).join(', ');
+  //           console.log('Productos parseados:', parsedResumen);
+  //         } catch (error) {
+  //           console.error('Error parsing resumen:', error);
+  //         }
+  //       }
+  
+  //       if (compra.direccion) {
+  //         try {
+  //           const parsedDireccion = typeof compra.direccion === 'string' ? JSON.parse(compra.direccion) : compra.direccion;
+  //           cliente = parsedDireccion.nombre || '';
+  //           console.log('Dirección parseada:', parsedDireccion);
+  //         } catch (error) {
+  //           console.error('Error parsing direccion:', error);
+  //         }
+  //       }
+  
+  //       return {
+  //         id: compra.id,
+  //         attributes: {
+  //           numero_pedido: compra.id,
+  //           cliente,
+  //           productos,
+  //           total: compra.total,
+  //           correo,
+  //           fecha: compra.created_at,
+  //           status: compra.estatus_id,
+  //         },
+  //       };
+  //     }),
+  //   };
+  // }
+  
+
   async findAll(params: {
     size: number;
     page: number;
@@ -155,7 +263,9 @@ export class VnailService {
     }
   
     if (dateEnd) {
-      totalAmountQuery.andWhere('compra.created_at <= :dateEnd', { dateEnd });
+      const dateEndWithTime = new Date(dateEnd);
+      dateEndWithTime.setUTCHours(23, 59, 59, 999); // Ajuste para incluir todo el día
+      totalAmountQuery.andWhere('compra.created_at <= :dateEnd', { dateEnd: dateEndWithTime.toISOString() });
     }
   
     const totalAmountResult = await totalAmountQuery.getRawOne();
@@ -169,7 +279,9 @@ export class VnailService {
     }
   
     if (dateEnd) {
-      query.andWhere('compra.created_at <= :dateEnd', { dateEnd });
+      const dateEndWithTime = new Date(dateEnd);
+      dateEndWithTime.setUTCHours(23, 59, 59, 999); // Ajuste para incluir todo el día
+      query.andWhere('compra.created_at <= :dateEnd', { dateEnd: dateEndWithTime.toISOString() });
     }
   
     if (search) {
@@ -190,8 +302,6 @@ export class VnailService {
     const users = await this.userRepository.findByIds(userIds);
     const userMap = new Map(users.map(user => [user.id, user.email]));
   
-    console.log('Resultados obtenidos:', result);
-  
     return {
       meta: {
         total,
@@ -204,13 +314,10 @@ export class VnailService {
         let cliente = '';
         const correo = userMap.get(compra.user_id) || compra.email || '';
   
-        console.log('Procesando compra:', compra);
-  
         if (compra.resumen) {
           try {
             const parsedResumen = typeof compra.resumen === 'string' ? JSON.parse(compra.resumen) : compra.resumen;
             productos = Object.values(parsedResumen).map((p: any) => categoriasMap[p.options.categoria_id] || p.name).join(', ');
-            console.log('Productos parseados:', parsedResumen);
           } catch (error) {
             console.error('Error parsing resumen:', error);
           }
@@ -220,7 +327,6 @@ export class VnailService {
           try {
             const parsedDireccion = typeof compra.direccion === 'string' ? JSON.parse(compra.direccion) : compra.direccion;
             cliente = parsedDireccion.nombre || '';
-            console.log('Dirección parseada:', parsedDireccion);
           } catch (error) {
             console.error('Error parsing direccion:', error);
           }

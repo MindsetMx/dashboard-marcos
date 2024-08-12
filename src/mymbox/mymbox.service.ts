@@ -274,8 +274,8 @@ export class MymboxService {
   // }
   
   
-  
-  
+
+
   async findAllCompras(params: {
     size: number;
     page: number;
@@ -298,7 +298,7 @@ export class MymboxService {
   
     if (dateEnd) {
       const dateEndWithTime = new Date(dateEnd);
-      dateEndWithTime.setHours(23, 59, 59, 999);
+      dateEndWithTime.setUTCHours(23, 59, 59, 999); // Cambia esto a `setUTCHours` si tus fechas están en UTC
       totalAmountQuery.andWhere('compra.created_at <= :dateEnd', { dateEnd: dateEndWithTime.toISOString() });
     }
   
@@ -324,7 +324,7 @@ export class MymboxService {
   
     if (dateEnd) {
       const dateEndWithTime = new Date(dateEnd);
-      dateEndWithTime.setHours(23, 59, 59, 999);
+      dateEndWithTime.setUTCHours(23, 59, 59, 999); // Cambia esto a `setUTCHours` si tus fechas están en UTC
       query.andWhere('compra.created_at <= :dateEnd', { dateEnd: dateEndWithTime.toISOString() });
     }
   
@@ -339,11 +339,7 @@ export class MymboxService {
   
     query.skip((page - 1) * size).take(size);
   
-    // console.log('SQL generado:', query.getSql());
-  
     const [result, total] = await query.getManyAndCount();
-  
-    // console.log('Resultados de la consulta:', result);
   
     return {
       meta: {
@@ -362,7 +358,7 @@ export class MymboxService {
             Object.values(parsedProductos).forEach((p: any) => productosSet.add(p.producto.categoria || 'sin categoria'));
           }
         } catch (error) {
-          // console.error('Error parsing productos:', error);
+          console.error('Error parsing productos:', error);
         }
   
         let productos = Array.from(productosSet).join(', ');
@@ -382,16 +378,6 @@ export class MymboxService {
           console.error('Error parsing informacion_envio or status_pago:', error);
         }
   
-        console.log('Compra procesada:', {
-          id: compra.id,
-          cliente,
-          productos,
-          total,
-          fecha: compra.created_at,
-          status,
-          statusPago,
-        });
-  
         return {
           id: compra.id,
           attributes: {
@@ -408,6 +394,7 @@ export class MymboxService {
       }),
     };
   }
+  
   
   
   
