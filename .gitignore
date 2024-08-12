@@ -41,7 +41,7 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 .env.local
-
+superdashboard.pem
 # temp directory
 .temp
 .tmp

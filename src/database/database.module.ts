@@ -44,10 +44,10 @@ import { cotizadorConfig } from 'ormconfig-cotizador';
       ...mymboxConfig,
       name: 'mymboxConnection',
     }),
-    TypeOrmModule.forRoot({
-      ...impresionesConfig,
-      name: 'impresionesConnection',
-    }),
+    // TypeOrmModule.forRoot({
+    //   ...impresionesConfig,
+    //   name: 'impresionesConnection',
+    // }),
     // TypeOrmModule.forRoot({
     //   ...cotizadorConfig,
     //   name: 'cotizadorConnection',
