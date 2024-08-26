@@ -29,7 +29,7 @@ import config from './config';
     EnmarktModule,
     VnailModule,
     MymboxModule,
-    // ImpresionesModule,
+    ImpresionesModule,
     AuthModule,
     UsersModule,
   ],

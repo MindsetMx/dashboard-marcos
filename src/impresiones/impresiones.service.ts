@@ -92,6 +92,8 @@ export class ImpresionesService {
 
 
 
+
+
   async findAll(params: {
     size: number;
     page: number;
@@ -101,70 +103,62 @@ export class ImpresionesService {
     orderBy?: 1 | -1;
   }): Promise<any> {
     const { size, page, dateStart, dateEnd, search, orderBy } = params;
-
-    // Calcular el monto total de todas las ventas en el rango de fechas sin limitar por paginación
-    const totalAmountQuery = this.pedidoRepository.createQueryBuilder('pedido')
-      .select('SUM(pedido.total)', 'total')
-      .where('pedido.estatus_pedido = :status', { status: 'pago exitoso' });
-
-    if (dateStart) {
-      totalAmountQuery.andWhere('pedido.created_at >= :dateStart', { dateStart });
-    }
-
-    if (dateEnd) {
-      totalAmountQuery.andWhere('pedido.created_at <= :dateEnd', { dateEnd });
-    }
-
-    const totalAmountResult = await totalAmountQuery.getRawOne();
-    const totalAmount = totalAmountResult.total || 0;
-
+  
     const query = this.pedidoRepository.createQueryBuilder('pedido')
       .where('pedido.estatus_pedido = :status', { status: 'pago exitoso' });
-
+  
+    // Aplicar filtro de fecha de inicio
     if (dateStart) {
-      query.andWhere('pedido.created_at >= :dateStart', { dateStart });
+      const dateStartUTC = new Date(dateStart);
+      dateStartUTC.setUTCHours(0, 0, 0, 0); // Inicio del día en UTC
+      query.andWhere('pedido.created_at >= :dateStart', { dateStart: dateStartUTC.toISOString() });
     }
-
+  
+    // Aplicar filtro de fecha de finalización
     if (dateEnd) {
-      query.andWhere('pedido.created_at <= :dateEnd', { dateEnd });
+      const dateEndUTC = new Date(dateEnd);
+      dateEndUTC.setUTCHours(23, 59, 59, 999); // Fin del día en UTC
+      query.andWhere('pedido.created_at <= :dateEnd', { dateEnd: dateEndUTC.toISOString() });
     }
-
+  
+    // Aplicar filtro de búsqueda
     if (search) {
       query.andWhere('pedido.correo LIKE :search OR pedido.nombre LIKE :search', { search: `%${search}%` });
     }
-
+  
+    // Aplicar ordenamiento
     if (orderBy) {
       const orderDirection = orderBy === 1 ? 'ASC' : 'DESC';
       query.orderBy('pedido.created_at', orderDirection);
     }
-
+  
+    // Aplicar paginación
     query.skip((page - 1) * size).take(size);
-
-    console.log(`Generated SQL: ${query.getSql()}`);
-
+  
+    console.log('Generated SQL:', query.getSql());
+  
     const [result, total] = await query.getManyAndCount();
-
-    console.log('Resultados obtenidos:', result);
-
+  
+    // Calcular el monto total
+    const totalAmount = result.reduce((sum, pedido) => sum + pedido.total, 0);
+  
     return {
       meta: {
         total,
         page,
         size,
-        totalAmount, // Agregar el monto total de las ventas al metadato
+        totalAmount,
       },
       data: result.map((pedido: any) => {
         let productos = '';
-
+  
         try {
           const carrito = pedido.carrito;
           productos = carrito.map((item: any) => item.personalizacion.tipoImpresionValor).join(', ');
-          console.log('Carrito parseado:', carrito);
-          console.log('Productos:', productos);
         } catch (error) {
           console.error('Error parsing carrito:', error);
         }
-
+  
         return {
           id: pedido.id,
           attributes: {
@@ -180,6 +174,18 @@ export class ImpresionesService {
       }),
     };
   }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
   async findAllUsers(params: {
     size: number;
@@ -242,5 +248,81 @@ export class ImpresionesService {
       })),
     };
   }
+
+
+
+  async findAllWithoutDateFilters(params: {
+    size: number;
+    page: number;
+    search?: string;
+    orderBy?: 1 | -1;
+  }): Promise<any> {
+    const { size, page, search, orderBy } = params;
+  
+    console.log('Request parameters:', { size, page, search, orderBy });
+  
+    // Construir consulta sin filtros de fecha
+    const query = this.pedidoRepository.createQueryBuilder('pedido')
+      .where('pedido.estatus_pedido = :status', { status: 'pago exitoso' });
+  
+    // Filtro de búsqueda
+    if (search) {
+      query.andWhere('pedido.correo LIKE :search OR pedido.nombre LIKE :search', { search: `%${search}%` });
+    }
+  
+    // Ordenamiento
+    if (orderBy) {
+      const orderDirection = orderBy === 1 ? 'ASC' : 'DESC';
+      query.orderBy('pedido.created_at', orderDirection);
+    }
+  
+    // Paginación
+    query.skip((page - 1) * size).take(size);
+  
+    console.log('Generated SQL:', query.getSql());
+  
+    const [result, total] = await query.getManyAndCount();
+  
+    console.log('Obtained records:', JSON.stringify(result, null, 2));
+  
+    // Calcular el monto total
+    const totalAmount = result.reduce((sum, pedido) => sum + pedido.total, 0);
+    console.log('Total Amount Calculated:', totalAmount);
+  
+    // Devolver los resultados
+    return {
+      meta: {
+        total,
+        page,
+        size,
+        totalAmount,
+      },
+      data: result.map((pedido: any) => {
+        let productos = '';
+  
+        try {
+          const carrito = pedido.carrito;
+          productos = carrito.map((item: any) => item.personalizacion.tipoImpresionValor).join(', ');
+          console.log('Parsed Carrito:', carrito);
+        } catch (error) {
+          console.error('Error parsing carrito:', error);
+        }
+  
+        return {
+          id: pedido.id,
+          attributes: {
+            numero_pedido: pedido.id,
+            cliente: pedido.nombre,
+            productos,
+            total: pedido.total,
+            correo: pedido.correo,
+            fecha: pedido.created_at,
+            status: pedido.estatus_pedido,
+          },
+        };
+      }),
+    };
+  }
+  
   
 }

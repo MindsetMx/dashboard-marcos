@@ -73,6 +73,24 @@ async findAll(
   });
 }
 
+// @Get('orders')
+// async findAll(
+//   @Query('size') size: number = 10,
+//   @Query('page') page: number = 1,
+//   @Query('search') search?: string,
+//   @Query('orderBy') orderBy: 1 | -1 = 1,
+// ) {
+//   console.log('Request parameters:', { size, page, search, orderBy });
+
+//   return this.impresionesService.findAllWithoutDateFilters({
+//     size,
+//     page,
+//     search,
+//     orderBy,
+//   });
+// }
+
+
   
 @Get('todas')
 async todas() {
