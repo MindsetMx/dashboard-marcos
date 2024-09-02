@@ -14,6 +14,7 @@ import { MymboxModule } from './mymbox/mymbox.module';
 import { ImpresionesModule } from './impresiones/impresiones.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { CotizadorModule } from './cotizador/cotizador.module';
 import config from './config';
 
 @Module({
@@ -26,12 +27,13 @@ import config from './config';
     FrameitModule,
     AnalyticsModule,
     PaspartuframesModule,
-    EnmarktModule,
+    // EnmarktModule,
     VnailModule,
     MymboxModule,
     ImpresionesModule,
     AuthModule,
     UsersModule,
+    CotizadorModule,
   ],
   controllers: [AppController, AnalyticsController,],
   providers: [AppService, AnalyticsService],

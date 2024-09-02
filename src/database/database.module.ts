@@ -32,10 +32,10 @@ import { cotizadorConfig } from 'ormconfig-cotizador';
       ...paspartuframesConfig,
       name: 'paspartuframesConnection',
     }),
-    TypeOrmModule.forRoot({
-      ...enmarktConfig,
-      name: 'enmarktConnection',
-    }),
+    // TypeOrmModule.forRoot({
+    //   ...enmarktConfig,
+    //   name: 'enmarktConnection',
+    // }),
     TypeOrmModule.forRoot({
       ...vnailConfig,
       name: 'vnailConnection',
@@ -48,10 +48,10 @@ import { cotizadorConfig } from 'ormconfig-cotizador';
       ...impresionesConfig,
       name: 'impresionesConnection',
     }),
-    // TypeOrmModule.forRoot({
-    //   ...cotizadorConfig,
-    //   name: 'cotizadorConnection',
-    // }),
+    TypeOrmModule.forRoot({
+      ...cotizadorConfig,
+      name: 'cotizadorConnection',
+    }),
   ],
   providers: [
     {
