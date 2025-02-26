@@ -64,7 +64,9 @@ services:
       - .:/usr/src/app/src
     depends_on:
       - webserver
-    command: certonly --webroot --webroot-path=/var/www/html --email ilse.lopez@mindsetmx.com --agree-tos --no-eff-email -d dashboard.marcosymarcos.mx
+    command: certonly --webroot --webroot-path=/var/www/html --email ilse.lopez@mindsetmx.com --agree-tos --no-eff-email --force-renewal -d dashboard.marcosymarcos.mx
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 2592000 & wait $${!}; done;'"
+
 
 volumes:
   mongodb:
